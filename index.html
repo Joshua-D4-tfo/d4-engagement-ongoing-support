@@ -851,10 +851,8 @@
 
   // SUBMIT
   async function submitLetter() {
-    const clientName = document.getElementById('clientName').value.trim();
     const sigName = document.getElementById('sigName').value.trim();
-    if (!clientName) { showToast('Please enter the client name.'); return; }
-    if (!sigName) { showToast('Please enter the client full name in the signature section.'); return; }
+    if (!sigName) { showToast('Please enter your full name in the signature section.'); return; }
     if (!document.getElementById('tc1').checked||!document.getElementById('tc2').checked||!document.getElementById('tc3').checked) { showToast('Please confirm all T&C checkboxes.'); return; }
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Submitting...';
@@ -863,9 +861,9 @@
       const summaryText = buildSummaryText();
       const clientEmail = document.getElementById('sigEmail')?.value?.trim() || 'Not provided';
       const sigDataURL = hasSig ? canvas.toDataURL('image/png') : null;
-      const engHTML = buildEngagementHTML(clientName, signedDate, sigDataURL);
+      const engHTML = buildEngagementHTML(sigName, signedDate, sigDataURL);
       const htmlBase64 = btoa(unescape(encodeURIComponent(engHTML)));
-      const res = await fetch('/.netlify/functions/send-engagement', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({clientName,signedDate,summaryText,engagementHTML:htmlBase64}) });
+      const res = await fetch('/.netlify/functions/send-engagement', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({clientName:sigName,signedDate,summaryText,engagementHTML:htmlBase64}) });
       if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.error||'Server error '+res.status); }
       document.getElementById('successOverlay').classList.add('show');
     } catch(err) {
@@ -995,6 +993,7 @@
   <div class="rule"></div>
 
   <div class="meta">
+    <div class="mi"><label>Client Name</label><span>${sigName || '—'}</span></div>
     <div class="mi"><label>Email Address</label><span>${sigEmail || '—'}</span></div>
     <div class="mi"><label>Signed By</label><span>${sigName || '—'}</span></div>
     <div class="mi"><label>Date Signed</label><span>${signedDate}</span></div>
