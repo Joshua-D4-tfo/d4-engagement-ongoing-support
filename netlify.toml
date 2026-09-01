@@ -1,0 +1,14 @@
+[build]
+functions = "netlify/functions"
+command = "echo 'Static site'"
+ 
+[env.production]
+RESEND_API_KEY = ""
+ 
+[context.production]
+environment = { RESEND_API_KEY = "" }
+ 
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
