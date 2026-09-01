@@ -16,6 +16,6 @@
   "author": "D4 & Partners",
   "license": "proprietary",
   "devDependencies": {
-    "netlify-cli": "^latest"
+    "netlify-cli": "latest"
   }
 }
