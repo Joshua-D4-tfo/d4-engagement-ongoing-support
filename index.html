@@ -290,20 +290,9 @@
       <button class="admin-lock" onclick="lockSection()">Lock &amp; Close ▶</button>
     </div>
   </div>
-  <div class="admin-row-label">Section 1 — Select structures &amp; enter agreed fees:</div>
-  <button class="admin-tog" id="tog-s1a" onclick="togS1('s1a',this)">Foundation Setup</button>
-  <button class="admin-tog" id="tog-s1b" onclick="togS1('s1b',this)">Foundation + SPVs</button>
-  <button class="admin-tog" id="tog-s1c" onclick="togS1('s1c',this)">UAE Operating Business</button>
-  <button class="admin-tog" id="tog-s1d" onclick="togS1('s1d',this)">No Setup Required</button>
-  <div id="admin-prow-s1a" class="admin-price-row" style="display:none;"><label>Foundation Setup</label><input class="admin-price-input" id="price-s1a" type="text" placeholder="e.g. USD 5,000" oninput="updateAll()" /></div>
-  <div id="admin-prow-s1b" class="admin-price-row" style="display:none;"><label>Foundation + SPVs</label><input class="admin-price-input" id="price-s1b" type="text" placeholder="e.g. USD 8,500" oninput="updateAll()" /></div>
-  <div id="admin-prow-s1c" class="admin-price-row" style="display:none;"><label>UAE Operating Business</label><input class="admin-price-input" id="price-s1c" type="text" placeholder="e.g. USD 3,500" oninput="updateAll()" /></div>
-  <div id="admin-prow-s1d" class="admin-price-row" style="display:none;"><label>No Setup Required</label><input class="admin-price-input" id="price-s1d" type="text" value="USD 0" oninput="updateAll()" /></div>
-  <div class="admin-row-label" style="margin-top:6px;">Section 3 — Bookkeeping monthly fee:</div>
+  <div class="admin-row-label">Section 2 — Bookkeeping monthly fee:</div>
   <div class="admin-price-row"><label>Monthly Fee</label><input class="admin-price-input" id="bkPriceAdmin" type="text" value="USD 1,250" placeholder="e.g. USD 1,250" oninput="updateBkPrice()" /></div>
-  <div class="admin-row-label" style="margin-top:6px;">VAT — Taxable amount (5% will be calculated automatically):</div>
-  <div class="admin-price-row"><label>Taxable Amount</label><input class="admin-price-input" id="vatTaxableAmount" type="text" placeholder="e.g. USD 16,500" oninput="updateAll()" /></div>
-  <div class="admin-row-label" style="margin-top:6px;">Section 4 — Payment notes (optional):</div>
+  <div class="admin-row-label" style="margin-top:6px;">Section 3 — Payment notes (optional):</div>
   <div style="width:100%;margin-top:4px;">
     <textarea id="paymentNotes" rows="2" placeholder="e.g. Setup fee payable in two instalments as agreed..." oninput="updateNotesDisplay()" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:white;padding:8px 10px;font-family:Inter,sans-serif;font-size:12px;border-radius:3px;outline:none;resize:vertical;line-height:1.5;"></textarea>
   </div>
@@ -614,8 +603,7 @@
       structures: sel.map(([id]) => id),
       fees,
       bkPrice: document.getElementById('bkPriceAdmin').value.trim(),
-      notes: document.getElementById('paymentNotes').value.trim(),
-      vatTaxable: document.getElementById('vatTaxableAmount')?.value?.trim() || ''
+      notes: document.getElementById('paymentNotes').value.trim()
     };
     try {
       const res = await fetch('/.netlify/functions/save-config', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(config) });
@@ -662,7 +650,6 @@
       if (config.bkPrice) document.getElementById('bkPriceAdmin').value = config.bkPrice;
       updateBkPrice();
       if (config.notes) { document.getElementById('paymentNotes').value = config.notes; updateNotesDisplay(); }
-      if (config.vatTaxable) { document.getElementById('vatTaxableAmount').value = config.vatTaxable; }
       s1Locked = true; adminMode = false;
       document.getElementById('adminPanel').classList.remove('visible');
       refreshCards(); updateAll();
@@ -775,18 +762,10 @@
     const subtotalNowStr = setupTBC ? (subtotalNow>0?fmt(subtotalNow)+' + TBC':'TBC') : fmt(subtotalNow);
     rows += `<tr style="${rowS}background:rgba(15,27,45,0.02);"><td style="${tdL}font-weight:600;">Subtotal</td><td style="${tdR}">${subtotalNowStr}</td><td style="${tdR}">${(pkgQtr+bkQtr)>0?fmt(pkgQtr+bkQtr):'—'}</td></tr>`;
 
-    // ── VAT — compounds from THREE sources:
-    // 1. Advisor-set taxable amount (typically the setup fee)
-    // 2. 5% of the selected package's quarterly amount (if any)
-    // 3. 5% of the selected bookkeeping quarterly amount (if any)
-    const vatTaxableStr = document.getElementById('vatTaxableAmount')?.value?.trim() || '';
-    const vatTaxableNum = parseFloat(vatTaxableStr.replace(/[^0-9.]/g,''));
-    const hasSetupVat = !isNaN(vatTaxableNum) && vatTaxableNum > 0;
-
-    let vatSetup = hasSetupVat ? vatTaxableNum * 0.05 : 0;
-    let vatPkg = pkgQtr > 0 ? pkgQtr * 0.05 : 0;
-    let vatBk = bkQtr > 0 ? bkQtr * 0.05 : 0;
-    let vatTotal = vatSetup + vatPkg + vatBk;
+    // ── VAT — 5% on Ongoing Support + Bookkeeping quarterly amounts
+    const vatPkg = pkgQtr > 0 ? pkgQtr * 0.05 : 0;
+    const vatBk = bkQtr > 0 ? bkQtr * 0.05 : 0;
+    const vatTotal = vatPkg + vatBk;
 
     if (vatTotal > 0) {
       rows += `<tr style="${rowS}"><td style="${tdL}">VAT (5%)</td><td style="${tdR}color:var(--orange);">${fmt(vatTotal)}</td><td style="${tdR}color:var(--orange);">${(vatPkg+vatBk)>0?fmt(vatPkg+vatBk):'—'}</td></tr>`;
@@ -926,13 +905,9 @@
     const subtotalNow = s1Total + pkgQtr + bkQtrAmt;
 
     // VAT — compounds from setup taxable amount + 5% of package + 5% of bookkeeping
-    const vatTaxableStr = document.getElementById('vatTaxableAmount')?.value?.trim() || '';
-    const vatTaxableNum = parseFloat(vatTaxableStr.replace(/[^0-9.]/g,''));
-    const hasSetupVat = !isNaN(vatTaxableNum) && vatTaxableNum > 0;
-    const vatSetup = hasSetupVat ? vatTaxableNum * 0.05 : 0;
     const vatPkg = pkgQtr > 0 ? pkgQtr * 0.05 : 0;
     const vatBk = bkQtrAmt > 0 ? bkQtrAmt * 0.05 : 0;
-    const vatTotal = vatSetup + vatPkg + vatBk;
+    const vatTotal = vatPkg + vatBk;
 
     const totalNow = subtotalNow + vatTotal;
     const totalNowStr = s1TBC ? (totalNow > 0 ? fmt(totalNow) + ' + TBC' : 'TBC') : fmt(totalNow);
