@@ -512,8 +512,6 @@
 
 <script>
   const D4_EMAIL = 'joshua@d4-tfo.com';
-  const s1 = { s1a: false, s1b: false, s1c: false, s1d: false };
-  const s1Labels = { s1a: 'Foundation Setup', s1b: 'Foundation with SPVs', s1c: 'UAE Operating Business Setup', s1d: 'No Setup Required' };
   const pkgData = {
     silver:   { name: 'Silver Support Package',   monthly: 1500, quarterly: 4500 },
     gold:     { name: 'Gold Support Package',     monthly: 2500, quarterly: 7500 },
@@ -542,66 +540,20 @@
     refreshCards();
   }
 
-  function togS1(id, btn) {
-    if (id === 's1d' && !s1[id]) {
-      ['s1a','s1b','s1c'].forEach(oid => { s1[oid] = false; document.getElementById('tog-'+oid)?.classList.remove('active'); });
-    } else if (id !== 's1d' && !s1[id]) {
-      s1['s1d'] = false; document.getElementById('tog-s1d')?.classList.remove('active');
-    }
-    s1[id] = !s1[id];
-    btn.classList.toggle('active', s1[id]);
-    ['s1a','s1b','s1c','s1d'].forEach(sid => {
-      const prow = document.getElementById('admin-prow-' + sid);
-      if (prow) prow.style.display = s1[sid] ? 'flex' : 'none';
-    });
-    refreshCards(); updateAll();
-  }
-
-  function refreshCards() {
-    ['s1a','s1b','s1c','s1d'].forEach(id => {
-      const card = document.getElementById('card-' + id);
-      const pdisp = document.getElementById('pdisp-' + id);
-      const sel = s1[id];
-      card.className = 'opt-card';
-      if (adminMode) {
-        card.classList.add(sel ? 'selected' : 'clickable');
-        pdisp.classList.remove('show');
-      } else if (s1Locked) {
-        card.classList.add(sel ? 'locked-sel' : 'locked-unsel');
-        if (sel) {
-          const v = document.getElementById('price-' + id)?.value?.trim();
-          pdisp.textContent = 'Agreed fee: ' + (v || 'To be confirmed');
-          pdisp.classList.add('show');
-        } else { pdisp.classList.remove('show'); }
-      } else {
-        card.classList.add('pending');
-        pdisp.classList.remove('show');
-      }
-    });
-  }
-
   function lockSection() {
-    if (!Object.values(s1).some(v => v)) { showToast('Select at least one structure before locking.'); return; }
     s1Locked = true; adminMode = false;
     document.getElementById('adminPanel').classList.remove('visible');
     document.body.classList.remove('admin-mode');
     document.getElementById('advisorBtn').style.display = 'none';
     document.getElementById('linkBar').style.display = 'none';
-    refreshCards(); updateAll();
+    updateAll();
   }
 
   // GENERATE LINK
   async function generateLink() {
-    if (!Object.values(s1).some(v => v)) { showToast('Select at least one structure before generating a link.'); return; }
     const genBtn = document.querySelector('[onclick="generateLink()"]');
     if (genBtn) { genBtn.textContent = 'Saving...'; genBtn.disabled = true; }
-    const sel = Object.entries(s1).filter(([,v]) => v);
-    const fees = {};
-    sel.forEach(([id]) => { const f = document.getElementById('price-'+id)?.value?.trim(); if (f) fees[id] = f; });
     const config = {
-      clientName: document.getElementById('clientName').value.trim(),
-      structures: sel.map(([id]) => id),
-      fees,
       bkPrice: document.getElementById('bkPriceAdmin').value.trim(),
       notes: document.getElementById('paymentNotes').value.trim()
     };
@@ -677,25 +629,6 @@
     block.style.display = notes ? 'block' : 'none';
   }
 
-  // S1 SUMMARY
-  function updateS1Summary() {
-    const rows = document.getElementById('s1SummaryRows');
-    const sel = Object.entries(s1).filter(([,v]) => v);
-    if (sel.length === 0) { rows.innerHTML = '<div class="s1-row" style="color:var(--text-light);font-style:italic;font-size:11px;">No structures selected yet.</div>'; return; }
-    let html = ''; let total = 0; let hasTBC = false;
-    sel.forEach(([id]) => {
-      const v = document.getElementById('price-'+id)?.value?.trim();
-      const n = parseFloat(v?.replace(/[^0-9.]/g,''));
-      if (!isNaN(n)) total += n; else hasTBC = true;
-      html += `<div class="s1-row"><span>${s1Labels[id]}</span><span class="s1-val">${v||'TBC'}</span></div>`;
-    });
-    const realSel = sel.filter(([id]) => id !== 's1d');
-    if (realSel.length > 1) {
-      const ts = hasTBC ? (total>0?fmt(total)+' + TBC':'TBC') : fmt(total);
-      html += `<div class="s1-row total"><span>Total Setup Fee</span><span class="s1-val">${ts}</span></div>`;
-    }
-    rows.innerHTML = html;
-  }
 
   // TOTALS
   function fmt(n) { return 'USD ' + n.toLocaleString('en-US'); }
@@ -782,7 +715,7 @@
     qtrCell.textContent = qtrStr + (ptChecked.length > 0 ? ' + expenses' : '');
   }
 
-  function updateAll() { updateS1Summary(); updateTotals(); updateSubmitBtn(); }
+  function updateAll() { updateTotals(); updateSubmitBtn(); }
 
   // SUBMIT BUTTON
   function updateSubmitBtn() {
@@ -853,7 +786,6 @@
 
   // BUILD ENGAGEMENT HTML
   function buildEngagementHTML(clientName, signedDate, sigDataURL) {
-    const sel = Object.entries(s1).filter(([,v]) => v);
     const bkVal = document.getElementById('bkPriceAdmin').value.trim() || 'USD 1,250';
     const bkNum = parseFloat(bkVal.replace(/[^0-9.]/g,''));
     const bkQtr = !isNaN(bkNum) ? bkNum * 3 : null;
@@ -868,18 +800,6 @@
     const sigImg = sigDataURL
       ? `<img src="${sigDataURL}" style="height:60px;display:block;margin-top:4px;" />`
       : `<div style="height:50px;border-bottom:1px solid #E2DDD8;color:#7A7A7A;font-style:italic;font-size:11px;padding-top:16px;">No signature captured</div>`;
-
-    let s1Html = ''; let s1Total = 0; let s1TBC = false;
-    sel.forEach(([id]) => {
-      const f = document.getElementById('price-'+id)?.value?.trim() || 'TBC';
-      const n = parseFloat(f.replace(/[^0-9.]/g,''));
-      if (!isNaN(n)) s1Total += n; else s1TBC = true;
-      s1Html += `<tr><td style="padding:7px 0;border-bottom:1px solid #F0EDE8;">${s1Labels[id]}</td><td style="padding:7px 0;border-bottom:1px solid #F0EDE8;text-align:right;font-weight:600;color:#E8632A;">${f}</td></tr>`;
-    });
-    if (sel.length > 1) {
-      const tot = s1TBC ? (s1Total > 0 ? fmt(s1Total) + ' + TBC' : 'TBC') : fmt(s1Total);
-      s1Html += `<tr><td style="padding:9px 0;font-weight:700;border-top:1.5px solid #E2DDD8;">Total Setup Fee</td><td style="padding:9px 0;text-align:right;font-weight:700;color:#E8632A;border-top:1.5px solid #E2DDD8;">${tot}</td></tr>`;
-    }
 
     let s2Html = '';
     if (s2 && s2 !== 'none' && pkgData[s2]) {
@@ -902,15 +822,15 @@
 
     const pkgQtr = (s2 && s2 !== 'none' && pkgData[s2]) ? pkgData[s2].quarterly : 0;
     const bkQtrAmt = bkChecked && bkQtr !== null ? bkQtr : 0;
-    const subtotalNow = s1Total + pkgQtr + bkQtrAmt;
+    const subtotalNow = pkgQtr + bkQtrAmt;
 
-    // VAT — compounds from setup taxable amount + 5% of package + 5% of bookkeeping
+    // VAT — 5% of package + 5% of bookkeeping
     const vatPkg = pkgQtr > 0 ? pkgQtr * 0.05 : 0;
     const vatBk = bkQtrAmt > 0 ? bkQtrAmt * 0.05 : 0;
     const vatTotal = vatPkg + vatBk;
 
     const totalNow = subtotalNow + vatTotal;
-    const totalNowStr = s1TBC ? (totalNow > 0 ? fmt(totalNow) + ' + TBC' : 'TBC') : fmt(totalNow);
+    const totalNowStr = fmt(totalNow);
     const totalQtr = pkgQtr + bkQtrAmt + vatPkg + vatBk;
 
     return `<!DOCTYPE html>
