@@ -32,17 +32,42 @@ export default async function(req, context) {
     }
   }
 
-  // Combined email body: notification + full engagement letter
-  const emailHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;}</style></head><body>${engagementHtmlDecoded}</body></html>`;
+  // Email body: notification summary only
+  const notificationHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Arial,sans-serif;color:#1A1A1A;background:#F0EDE8;margin:0;padding:0;">
+<div style="max-width:580px;margin:36px auto;background:white;">
+  <div style="background:#0F1B2D;padding:18px 30px;"><span style="color:rgba(255,255,255,0.6);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">D4 &amp; Partners — New Signed Engagement &nbsp;|&nbsp; ${signedDate}</span></div>
+  <div style="height:4px;background:#E8632A;"></div>
+  <div style="padding:30px;">
+    <h2 style="font-size:19px;color:#0F1B2D;margin-bottom:16px;">New Engagement Letter Signed</h2>
+    <p style="font-size:13px;margin-bottom:6px;"><strong>Client:</strong> ${clientName}</p>
+    <p style="font-size:13px;margin-bottom:16px;"><strong>Date:</strong> ${signedDate}</p>
+    <div style="background:#FAFAF8;border:1px solid #E2DDD8;border-left:4px solid #E8632A;padding:16px 20px;border-radius:3px;">
+      <p style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#7A7A7A;margin-bottom:8px;font-weight:600;">Engagement Summary</p>
+      <pre style="font-family:Arial,sans-serif;font-size:12px;color:#1A1A1A;white-space:pre-wrap;margin:0;line-height:1.7;">${summaryText || 'No summary'}</pre>
+    </div>
+    <p style="margin-top:16px;font-size:11px;color:#E8632A;font-weight:600;">Signed engagement letter attached.</p>
+  </div>
+</div>
+</body></html>`;
+
+  // Prepare attachment
+  const attachmentBase64 = engagementHtmlDecoded ? Buffer.from(engagementHtmlDecoded, 'utf-8').toString('base64') : null;
 
   const payload = {
     from: 'D4 Engagements <onboarding@resend.dev>',
     to: [D4_EMAIL],
     subject: `Signed Engagement — ${clientName} — ${signedDate}`,
-    html: emailHtml
+    html: notificationHtml,
+    ...(attachmentBase64 ? {
+      attachments: [{
+        filename: `D4-Engagement-${safeClient}-${safeDate}.html`,
+        content: attachmentBase64,
+        encoding: 'base64'
+      }]
+    } : {})
   };
 
-  console.log('Sending to Resend. Email size:', emailHtml.length);
+  console.log('Sending to Resend. Has attachment:', !!attachmentBase64);
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -72,4 +97,5 @@ export default async function(req, context) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }
+
 export const config = { path: '/.netlify/functions/send-engagement' };
