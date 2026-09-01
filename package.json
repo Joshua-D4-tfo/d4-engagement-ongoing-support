@@ -1,0 +1,21 @@
+{
+  "name": "d4-engagement-letters",
+  "version": "1.0.0",
+  "description": "D4 & Partners engagement letter system",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site'"
+  },
+  "keywords": [
+    "engagement",
+    "letter",
+    "d4",
+    "partners"
+  ],
+  "author": "D4 & Partners",
+  "license": "proprietary",
+  "devDependencies": {
+    "netlify-cli": "^latest"
+  }
+}
