@@ -478,9 +478,9 @@
   <!-- T&C -->
   <div class="tc-section">
     <p class="tc-intro">Please read and confirm each of the following statements before submitting your signed engagement letter. All three boxes must be ticked to proceed.</p>
-    <div class="tc-row"><input type="checkbox" id="tc1" onchange="updateSubmitBtn()" /><label for="tc1">I confirm that the scope of services described in Section 1 has been discussed with my D4 advisor and accurately reflects the agreed engagement.</label></div>
-    <div class="tc-row"><input type="checkbox" id="tc2" onchange="updateSubmitBtn()" /><label for="tc2">I agree to the payment terms set out in Section 4, including full advance payment for business setup services and quarterly advance billing for any support packages or bookkeeping services selected.</label></div>
-    <div class="tc-row"><input type="checkbox" id="tc3" onchange="updateSubmitBtn()" /><label for="tc3">I understand that add-on and pass-through expenses (Section 3) will only be charged with my prior approval, and I authorise D4 &amp; Partners to procure these services on my behalf when required.</label></div>
+    <div class="tc-row"><input type="checkbox" id="tc1" onchange="updateSubmitBtn()" /><label for="tc1">I confirm that the scope of services described in Sections 1 and 2 has been discussed with my D4 advisor and accurately reflects the agreed engagement.</label></div>
+    <div class="tc-row"><input type="checkbox" id="tc2" onchange="updateSubmitBtn()" /><label for="tc2">I agree to the payment terms set out in Section 3, including quarterly advance billing for any support packages or bookkeeping services selected.</label></div>
+    <div class="tc-row"><input type="checkbox" id="tc3" onchange="updateSubmitBtn()" /><label for="tc3">I understand that add-on and pass-through expenses (Section 2) will only be charged with my prior approval, and I authorise D4 &amp; Partners to procure these services on my behalf when required.</label></div>
   </div>
 
   <div class="submit-area">
@@ -532,12 +532,11 @@
 
   // ADMIN
   function toggleAdmin() {
-    if (s1Locked) { showToast('Section 1 is locked. Refresh to start a new engagement.'); return; }
+    if (s1Locked) { showToast('Advisor setup is locked. Refresh to start a new engagement.'); return; }
     adminMode = !adminMode;
     document.getElementById('adminPanel').classList.toggle('visible', adminMode);
     document.body.classList.toggle('admin-mode', adminMode);
     document.getElementById('advisorBtn').textContent = adminMode ? '✕ Exit Advisor Mode' : '⚙ Advisor Setup';
-    refreshCards();
   }
 
   function lockSection() {
@@ -589,22 +588,12 @@
       const res = await fetch('/.netlify/functions/get-config?ref=' + encodeURIComponent(ref));
       if (!res.ok) { showToast('Could not load engagement configuration.'); return; }
       const config = await res.json();
-      if (config.clientName) document.getElementById('clientName').value = config.clientName;
-      if (config.structures) {
-        config.structures.forEach(id => {
-          if (s1.hasOwnProperty(id)) {
-            s1[id] = true;
-            const fee = config.fees?.[id];
-            if (fee) { const inp = document.getElementById('price-'+id); if (inp) inp.value = fee; }
-          }
-        });
-      }
       if (config.bkPrice) document.getElementById('bkPriceAdmin').value = config.bkPrice;
       updateBkPrice();
       if (config.notes) { document.getElementById('paymentNotes').value = config.notes; updateNotesDisplay(); }
       s1Locked = true; adminMode = false;
       document.getElementById('adminPanel').classList.remove('visible');
-      refreshCards(); updateAll();
+      updateAll();
     } catch(err) { showToast('Failed to load configuration.'); }
   })();
 
@@ -734,16 +723,12 @@
 
   // BUILD SUMMARY
   function buildSummaryText() {
-    const sel = Object.entries(s1).filter(([,v]) => v);
-    let lines = ['ENGAGEMENT SUMMARY','==================','','Section 1 — Business Setup:'];
-    if (!sel.length) lines.push('  • To be confirmed');
-    else sel.forEach(([id]) => { const f=document.getElementById('price-'+id)?.value?.trim()||'TBC'; lines.push('  • '+s1Labels[id]+' — '+f); });
-    lines.push('','Section 2 — Ongoing Support:');
+    let lines = ['ENGAGEMENT SUMMARY','==================','','Section 1 — Ongoing Support:'];
     lines.push(s2 && s2!=='none' ? '  • '+(pkgData[s2]?.name||s2)+' — '+fmt(pkgData[s2].monthly)+'/month' : '  • No ongoing support selected');
     const bkChecked = document.getElementById('chk-bk')?.checked;
-    if (bkChecked) { lines.push('','Section 3 — Bookkeeping:'); lines.push('  • Bookkeeping Services — '+(document.getElementById('bkPriceAdmin').value.trim()||'USD 1,250')+'/month'); }
+    if (bkChecked) { lines.push('','Section 2 — Bookkeeping:'); lines.push('  • Bookkeeping Services — '+(document.getElementById('bkPriceAdmin').value.trim()||'USD 1,250')+'/month'); }
     const ptAddons = ['chk-sim','chk-software','chk-legal','chk-govt','chk-translation','chk-courier'].filter(id=>document.getElementById(id)?.checked);
-    if (ptAddons.length) { lines.push('','Other add-ons selected (billed at actuals):'); ptAddons.forEach(id=>lines.push('  • '+({'chk-sim':'UAE SIM Card','chk-software':'Accounting Software','chk-legal':'Legal Fees','chk-govt':'Govt Filing Fees','chk-translation':'Translation & Attestation','chk-courier':'Courier & Delivery'}[id]))); }
+    if (ptAddons.length) { lines.push('','Section 3 — Other add-ons selected (billed at actuals):'); ptAddons.forEach(id=>lines.push('  • '+({'chk-sim':'UAE SIM Card','chk-software':'Accounting Software','chk-legal':'Legal Fees','chk-govt':'Govt Filing Fees','chk-translation':'Translation & Attestation','chk-courier':'Courier & Delivery'}[id]))); }
     const notes = document.getElementById('paymentNotes').value.trim();
     if (notes) { lines.push('','Payment Notes:','  '+notes); }
     return lines.join('\n');
