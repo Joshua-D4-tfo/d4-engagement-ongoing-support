@@ -327,7 +327,6 @@
       <p>Wealth Structuring &amp; Advisory Services</p>
     </div>
     <div class="doc-meta-right">
-      <div class="meta-field"><label>Client Name</label><input type="text" id="clientName" placeholder="Full legal name" /></div>
       <div class="meta-field"><label>Date</label><input type="date" id="clientDate" /></div>
     </div>
   </div>
@@ -996,31 +995,24 @@
   <div class="rule"></div>
 
   <div class="meta">
-    <div class="mi"><label>Client Name</label><span>${clientName}</span></div>
     <div class="mi"><label>Email Address</label><span>${sigEmail || '—'}</span></div>
-    <div class="mi"><label>Signed By</label><span>${sigName || clientName}</span></div>
+    <div class="mi"><label>Signed By</label><span>${sigName || '—'}</span></div>
     <div class="mi"><label>Date Signed</label><span>${signedDate}</span></div>
   </div>
 
   <div class="sec">
-    <div class="sec-t"><span class="sn">1</span> Business Setup</div>
-    <table>${s1Html || '<tr><td style="color:#7A7A7A;font-style:italic;">To be confirmed</td></tr>'}</table>
-  </div>
-
-  <div class="sec">
-    <div class="sec-t"><span class="sn">2</span> Ongoing Support</div>
+    <div class="sec-t"><span class="sn">1</span> Ongoing Support</div>
     <table>${s2Html}</table>
   </div>
 
   <div class="sec">
-    <div class="sec-t"><span class="sn">3</span> Add-Ons &amp; Expenses</div>
+    <div class="sec-t"><span class="sn">2</span> Add-Ons &amp; Expenses</div>
     <table>${addonsHtml}</table>
   </div>
 
   <div class="sec">
-    <div class="sec-t"><span class="sn">4</span> Payment Terms</div>
+    <div class="sec-t"><span class="sn">3</span> Payment Terms</div>
     <div class="terms-grid">
-      <div class="tc"><h4>Business Setup Fee</h4><p>UAE government authorities require payment in full before initiating any registration or licensing process. The full setup fee must be settled prior to commencement.</p></div>
       <div class="tc"><h4>Ongoing Support</h4><p>Monthly packages are invoiced quarterly in advance. First quarterly payment due upon signing, unless agreed to otherwise.</p></div>
       <div class="tc"><h4>Bookkeeping Services</h4><p>Where selected, invoiced quarterly in advance. First quarterly payment due upon signing, unless agreed to otherwise.</p></div>
       <div class="tc"><h4>General</h4><p>All fees quoted exclusive of VAT. Payment instructions provided on invoice.</p></div>
@@ -1028,7 +1020,6 @@
     <table class="tot-t">
       <thead><tr><th>Service</th><th>Payable Now</th><th>Per Quarter</th></tr></thead>
       <tbody>
-        ${sel.map(([id]) => { const f = document.getElementById('price-'+id)?.value?.trim() || 'TBC'; return `<tr><td>${s1Labels[id]}</td><td>${f}</td><td class="dash">—</td></tr>`; }).join('')}
         ${(s2 && s2 !== 'none' && pkgData[s2]) ? `<tr><td>${pkgData[s2].name}</td><td>${fmt(pkgData[s2].quarterly)} <small style="color:#7A7A7A;font-weight:400;">(first qtr)</small></td><td>${fmt(pkgData[s2].quarterly)}</td></tr>` : ''}
         ${bkChecked ? `<tr><td>Bookkeeping Services</td><td>${bkQtrStr} <small style="color:#7A7A7A;font-weight:400;">(first qtr)</small></td><td>${bkQtrStr}</td></tr>` : ''}
         ${vatTotal > 0 ? `<tr><td>VAT (5%)</td><td>${fmt(vatTotal)}</td><td>${(vatPkg+vatBk)>0?fmt(vatPkg+vatBk):'—'}</td></tr>` : ''}
