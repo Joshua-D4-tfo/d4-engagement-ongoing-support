@@ -639,24 +639,16 @@
     const qtrCell = document.getElementById('totalsQtr');
     if (!tbody) return;
 
-    // Setup total
-    const sel1 = Object.entries(s1).filter(([,v]) => v);
-    let setupTotal = 0; let setupTBC = false;
-    sel1.forEach(([id]) => {
-      const n = parseFloat(document.getElementById('price-'+id)?.value?.replace(/[^0-9.]/g,''));
-      if (!isNaN(n)) setupTotal += n; else setupTBC = true;
-    });
+    // Package quarterly
+    let pkgQtr = 0;
+    if (s2 && s2 !== 'none' && pkgData[s2]) { pkgQtr = pkgData[s2].quarterly; }
 
-    // Package quarterly (and monthly for VAT base)
-    let pkgQtr = 0; let pkgMonthly = 0;
-    if (s2 && s2 !== 'none' && pkgData[s2]) { pkgQtr = pkgData[s2].quarterly; pkgMonthly = pkgData[s2].monthly; }
-
-    // Bookkeeping quarterly (and monthly for VAT base)
-    let bkQtr = 0; let bkQtrStr = '—'; let bkMonthly = 0;
+    // Bookkeeping quarterly
+    let bkQtr = 0; let bkQtrStr = '—';
     if (document.getElementById('chk-bk')?.checked) {
       const bkVal = document.getElementById('bkPriceAdmin').value.trim() || 'USD 1,250';
       const bkNum = parseFloat(bkVal.replace(/[^0-9.]/g,''));
-      if (!isNaN(bkNum)) { bkQtr = bkNum * 3; bkQtrStr = fmt(bkQtr); bkMonthly = bkNum; }
+      if (!isNaN(bkNum)) { bkQtr = bkNum * 3; bkQtrStr = fmt(bkQtr); }
       else bkQtrStr = bkVal + ' × 3';
     }
 
@@ -669,10 +661,6 @@
     const tdL = 'padding:8px 12px;color:var(--text-mid);';
     const tdR = 'padding:8px 12px;text-align:right;font-weight:600;';
     const rowS = 'border-bottom:1px solid var(--rule);';
-
-    // Setup row
-    const setupStr = setupTBC ? (setupTotal>0?fmt(setupTotal)+' + TBC':'TBC') : (setupTotal>0?fmt(setupTotal):'USD 0');
-    rows += `<tr style="${rowS}"><td style="${tdL}">Business Setup Fee</td><td style="${tdR}color:var(--orange);">${setupStr}</td><td style="${tdR}color:var(--text-light);font-weight:400;">—</td></tr>`;
 
     // Package row
     if (s2 && s2 !== 'none') {
@@ -691,8 +679,8 @@
     }
 
     // Subtotal before VAT
-    const subtotalNow = setupTotal + pkgQtr + bkQtr;
-    const subtotalNowStr = setupTBC ? (subtotalNow>0?fmt(subtotalNow)+' + TBC':'TBC') : fmt(subtotalNow);
+    const subtotalNow = pkgQtr + bkQtr;
+    const subtotalNowStr = fmt(subtotalNow);
     rows += `<tr style="${rowS}background:rgba(15,27,45,0.02);"><td style="${tdL}font-weight:600;">Subtotal</td><td style="${tdR}">${subtotalNowStr}</td><td style="${tdR}">${(pkgQtr+bkQtr)>0?fmt(pkgQtr+bkQtr):'—'}</td></tr>`;
 
     // ── VAT — 5% on Ongoing Support + Bookkeeping quarterly amounts
@@ -708,7 +696,7 @@
 
     // Grand totals — subtotal + VAT
     const totalNow = subtotalNow + vatTotal;
-    const nowStr = setupTBC ? (totalNow>0?fmt(totalNow)+' + TBC':'TBC') : fmt(totalNow);
+    const nowStr = fmt(totalNow);
     const recurringQtr = pkgQtr + bkQtr + vatPkg + vatBk;
     const qtrStr = recurringQtr > 0 ? fmt(recurringQtr) : '—';
     nowCell.textContent = nowStr + (ptChecked.length > 0 ? ' + expenses' : '');
