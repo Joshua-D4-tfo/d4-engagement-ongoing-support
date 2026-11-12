@@ -291,7 +291,7 @@
     </div>
   </div>
   <div class="admin-row-label">Section 2 — Bookkeeping monthly fee:</div>
-  <div class="admin-price-row"><label>Monthly Fee</label><input class="admin-price-input" id="bkPriceAdmin" type="text" value="USD 1,250" placeholder="e.g. USD 1,250" oninput="updateBkPrice()" /></div>
+  <div class="admin-price-row"><label>Monthly Fee</label><input class="admin-price-input" id="bkPriceAdmin" type="text" value="AED 4,600" placeholder="e.g. AED 4,600" oninput="updateBkPrice()" /></div>
   <div class="admin-row-label" style="margin-top:6px;">Section 3 — Payment notes (optional):</div>
   <div style="width:100%;margin-top:4px;">
     <textarea id="paymentNotes" rows="2" placeholder="e.g. Setup fee payable in two instalments as agreed..." oninput="updateNotesDisplay()" style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:white;padding:8px 10px;font-family:Inter,sans-serif;font-size:12px;border-radius:3px;outline:none;resize:vertical;line-height:1.5;"></textarea>
@@ -391,7 +391,7 @@
           <div class="addon-note">Monthly bookkeeping, VAT returns, and financial reporting for your UAE entity</div>
         </div>
         <div class="addon-right">
-          <span class="bk-price-display" id="bkPriceDisplay">USD 1,250 / month</span>
+          <span class="bk-price-display" id="bkPriceDisplay">AED 4,600 / month</span>
           <input type="checkbox" class="addon-chk" id="chk-bk" onchange="updateAll()" />
         </div>
       </div>
@@ -516,9 +516,9 @@
 <script>
   const D4_EMAIL = 'joshua@d4-tfo.com';
   const pkgData = {
-    silver:   { name: 'Silver Support Package',   monthly: 1500, quarterly: 4500 },
-    gold:     { name: 'Gold Support Package',     monthly: 2500, quarterly: 7500 },
-    platinum: { name: 'Platinum Support Package', monthly: 4500, quarterly: 13500 },
+    silver:   { name: 'Silver Support Package',   monthly: 5500, quarterly: 16500 },
+    gold:     { name: 'Gold Support Package',     monthly: 9150, quarterly: 27450 },
+    platinum: { name: 'Platinum Support Package', monthly: 16500, quarterly: 49500 },
     none:     { name: 'No Ongoing Support',       monthly: 0,    quarterly: 0 }
   };
   let s1Locked = false, adminMode = false, s2 = null, hasSig = false;
@@ -610,7 +610,7 @@
   // BOOKKEEPING
   function updateBkPrice() {
     const val = document.getElementById('bkPriceAdmin').value.trim();
-    document.getElementById('bkPriceDisplay').textContent = (val || 'USD 1,250') + ' / month';
+    document.getElementById('bkPriceDisplay').textContent = (val || 'AED 4,600') + ' / month';
     updateTotals();
   }
 
@@ -623,7 +623,7 @@
 
 
   // TOTALS
-  function fmt(n) { return 'USD ' + n.toLocaleString('en-US'); }
+  function fmt(n) { return 'AED ' + n.toLocaleString('en-US'); }
 
   function updateTotals() {
     const tbody = document.getElementById('totalsBody');
@@ -638,7 +638,7 @@
     // Bookkeeping quarterly
     let bkQtr = 0; let bkQtrStr = '—';
     if (document.getElementById('chk-bk')?.checked) {
-      const bkVal = document.getElementById('bkPriceAdmin').value.trim() || 'USD 1,250';
+      const bkVal = document.getElementById('bkPriceAdmin').value.trim() || 'AED 4,600';
       const bkNum = parseFloat(bkVal.replace(/[^0-9.]/g,''));
       if (!isNaN(bkNum)) { bkQtr = bkNum * 3; bkQtrStr = fmt(bkQtr); }
       else bkQtrStr = bkVal + ' × 3';
@@ -729,7 +729,7 @@
     let lines = ['ENGAGEMENT SUMMARY','==================','','Section 1 — Ongoing Support:'];
     lines.push(s2 && s2!=='none' ? '  • '+(pkgData[s2]?.name||s2)+' — '+fmt(pkgData[s2].monthly)+'/month' : '  • No ongoing support selected');
     const bkChecked = document.getElementById('chk-bk')?.checked;
-    if (bkChecked) { lines.push('','Section 2 — Bookkeeping:'); lines.push('  • Bookkeeping Services — '+(document.getElementById('bkPriceAdmin').value.trim()||'USD 1,250')+'/month'); }
+    if (bkChecked) { lines.push('','Section 2 — Bookkeeping:'); lines.push('  • Bookkeeping Services — '+(document.getElementById('bkPriceAdmin').value.trim()||'AED 4,600')+'/month'); }
     const ptAddons = ['chk-sim','chk-software','chk-legal','chk-govt','chk-translation','chk-courier'].filter(id=>document.getElementById(id)?.checked);
     if (ptAddons.length) { lines.push('','Section 3 — Other add-ons selected (billed at actuals):'); ptAddons.forEach(id=>lines.push('  • '+({'chk-sim':'UAE SIM Card','chk-software':'Accounting Software','chk-legal':'Legal Fees','chk-govt':'Govt Filing Fees','chk-translation':'Translation & Attestation','chk-courier':'Courier & Delivery'}[id]))); }
     const notes = document.getElementById('paymentNotes').value.trim();
@@ -762,7 +762,7 @@
 
   // BUILD ENGAGEMENT HTML
   function buildEngagementHTML(clientName, signedDate, sigDataURL) {
-    const bkVal = document.getElementById('bkPriceAdmin').value.trim() || 'USD 1,250';
+    const bkVal = document.getElementById('bkPriceAdmin').value.trim() || 'AED 4,600';
     const bkNum = parseFloat(bkVal.replace(/[^0-9.]/g,''));
     const bkQtr = !isNaN(bkNum) ? bkNum * 3 : null;
     const bkQtrStr = bkQtr !== null ? fmt(bkQtr) : bkVal + ' x 3';
