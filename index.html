@@ -623,7 +623,7 @@
 
 
   // TOTALS
-  function fmt(n) { return 'AED ' + n.toLocaleString('en-US'); }
+  function fmt(n) { return 'AED ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
   function updateTotals() {
     const tbody = document.getElementById('totalsBody');
